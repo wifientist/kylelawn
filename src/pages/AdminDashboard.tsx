@@ -43,7 +43,27 @@ export default function AdminDashboard() {
       }
     }
 
+    const fetchImages = async () => {
+      try {
+        const response = await fetch('/api/images/list', {
+          headers: {
+            'Authorization': `Bearer ${getAuthToken()}`
+          }
+        })
+        if (response.ok) {
+          const data = await response.json()
+          setUploadedImages(data.images.map((img: any) => ({
+            url: img.url,
+            name: img.filename
+          })))
+        }
+      } catch (error) {
+        console.error('Failed to fetch images:', error)
+      }
+    }
+
     fetchPosts()
+    fetchImages()
   }, [navigate])
 
   const handleLogout = () => {

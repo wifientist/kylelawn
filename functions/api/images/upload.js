@@ -47,21 +47,29 @@ export async function onRequestPost(context) {
 
     console.log('[IMAGES] Uploaded:', fileName, '→', imageUrl, '(local:', isLocal, ')');
 
-    // If postId provided, save to database
-    if (postId) {
-      const imageId = crypto.randomUUID();
-      const now = new Date().toISOString();
+    // Save to uploaded_images table for tracking
+    const imageId = crypto.randomUUID();
+    const now = new Date().toISOString();
 
+    await env.DB.prepare(
+      `INSERT INTO uploaded_images (id, filename, url, content_type, size, created_at)
+       VALUES (?, ?, ?, ?, ?, ?)`
+    ).bind(imageId, fileName, imageUrl, file.type, file.size, now).run();
+
+    // If postId provided, also link to blog post
+    if (postId) {
+      const linkId = crypto.randomUUID();
       await env.DB.prepare(
         `INSERT INTO blog_images (id, post_id, image_url, caption, created_at)
          VALUES (?, ?, ?, ?, ?)`
-      ).bind(imageId, postId, imageUrl, caption, now).run();
+      ).bind(linkId, postId, imageUrl, caption, now).run();
     }
 
     return new Response(JSON.stringify({
       success: true,
       imageUrl,
-      fileName
+      fileName,
+      imageId
     }), {
       status: 201,
       headers: { 'Content-Type': 'application/json' },
