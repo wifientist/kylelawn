@@ -23,6 +23,7 @@
   "dependencies": {
     "@vitejs/plugin-react": "^5.1.0",
     "react": "^19.2.0",
+    "react-compare-image": "^3.5.12",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.9.5",
     "vite": "^7.2.1"

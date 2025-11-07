@@ -6,8 +6,8 @@ export default function Hero() {
           <h1 className="text-5xl md:text-5xl font-bold mb-6">
             Professional Lawn Care Services
           </h1>
-          <p className="text-xl md:text-2xl mb-8 text-green-50">
-            Take your lawn to the next level. Reliable, affordable, and tailored to your needs.
+          <p className="text-xl md:text-2xl mb-4 text-green-50">
+            Take your lawn to the next level.
           </p>
           <div className="flex flex-wrap gap-4">
             <a href="#contact" className="btn-primary bg-white text-dark-green hover:bg-gray-100">

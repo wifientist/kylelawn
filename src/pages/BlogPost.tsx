@@ -1,6 +1,7 @@
 import { useParams, Link } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import type { BlogPost } from '../types/blog'
+import ImageCompare from '../components/ImageCompare'
 
 export default function BlogPostPage() {
   const { slug } = useParams<{ slug: string }>()
@@ -78,6 +79,19 @@ export default function BlogPostPage() {
         <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-lg -mt-16 relative z-10 p-8 md:p-12">
           <div className="prose prose-lg max-w-none">
             {post.content.split('\n').map((paragraph, index) => {
+              // Check for image comparison syntax: [compare: beforeUrl | afterUrl]
+              const compareMatch = paragraph.match(/\[compare:\s*(.+?)\s*\|\s*(.+?)\s*\]/)
+              if (compareMatch) {
+                const [, beforeImage, afterImage] = compareMatch
+                return (
+                  <ImageCompare
+                    key={index}
+                    beforeImage={beforeImage.trim()}
+                    afterImage={afterImage.trim()}
+                  />
+                )
+              }
+
               if (paragraph.startsWith('# ')) {
                 return <h1 key={index} className="text-3xl font-bold mt-8 mb-4">{paragraph.slice(2)}</h1>
               } else if (paragraph.startsWith('## ')) {

@@ -21,6 +21,9 @@ export default function AdminDashboard() {
   const [uploadedImages, setUploadedImages] = useState<Array<{url: string, name: string}>>([])
   const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([])
   const [portfolioForm, setPortfolioForm] = useState({ title: '', subtitle: '', imageUrl: '' })
+  const [alignForm, setAlignForm] = useState({ beforeImage: '', afterImage: '', width: 1200, height: 800 })
+  const [alignedImages, setAlignedImages] = useState<{ beforeUrl: string; afterUrl: string } | null>(null)
+  const [isAligning, setIsAligning] = useState(false)
   const [formData, setFormData] = useState<CreateBlogPost>({
     title: '',
     content: '',
@@ -251,6 +254,60 @@ export default function AdminDashboard() {
       }
     } catch (error) {
       console.error('Failed to delete image:', error)
+    }
+  }
+
+  const handleAlignImages = async () => {
+    if (!alignForm.beforeImage || !alignForm.afterImage) {
+      alert('Please select both before and after images')
+      return
+    }
+
+    setIsAligning(true)
+    setAlignedImages(null)
+
+    try {
+      const response = await fetch('/api/images/align', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getAuthToken()}`
+        },
+        body: JSON.stringify({
+          beforeImageName: alignForm.beforeImage,
+          afterImageName: alignForm.afterImage,
+          width: alignForm.width,
+          height: alignForm.height
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+
+        // Show instructions dialog
+        const instructions = data.instructions.join('\n')
+        const message = `${data.message}\n\nRecommended dimensions: ${data.recommendedDimensions.width}x${data.recommendedDimensions.height}px\n\n${instructions}\n\nBefore Image: ${data.beforeImage.url}\nAfter Image: ${data.afterImage.url}`
+
+        alert(message)
+
+        // Open before image in new tab for easy download
+        window.open(data.beforeImage.url, '_blank')
+        setTimeout(() => window.open(data.afterImage.url, '_blank'), 500)
+
+        setAlignedImages({
+          beforeUrl: data.beforeImage.url,
+          afterUrl: data.afterImage.url
+        })
+      } else {
+        const error = await response.json()
+        console.error('Failed to get image info:', error)
+        alert('Failed to get image info: ' + (error.details || error.error))
+      }
+    } catch (error) {
+      console.error('Failed to align images:', error)
+      alert('Failed to align images')
+    } finally {
+      setIsAligning(false)
     }
   }
 
@@ -595,6 +652,105 @@ export default function AdminDashboard() {
                   setUploadedImages(prev => [...prev, { url, name: url.split('/').pop() || 'image' }])
                 }}
               />
+            </div>
+
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-xl font-semibold mb-4">Image Alignment Helper</h2>
+              <p className="text-sm text-gray-600 mb-4">
+                Select two images to get download links and resize instructions. You'll need to resize them externally using ImageMagick, GIMP, or Photopea, then re-upload.
+              </p>
+
+              <div className="grid md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Before Image</label>
+                  <select
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lawn-green focus:border-transparent"
+                    value={alignForm.beforeImage}
+                    onChange={(e) => setAlignForm({ ...alignForm, beforeImage: e.target.value })}
+                  >
+                    <option value="">Select image...</option>
+                    {uploadedImages.map((img) => (
+                      <option key={img.name} value={img.name}>{img.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">After Image</label>
+                  <select
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lawn-green focus:border-transparent"
+                    value={alignForm.afterImage}
+                    onChange={(e) => setAlignForm({ ...alignForm, afterImage: e.target.value })}
+                  >
+                    <option value="">Select image...</option>
+                    {uploadedImages.map((img) => (
+                      <option key={img.name} value={img.name}>{img.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Width (px)</label>
+                  <input
+                    type="number"
+                    min="400"
+                    max="2400"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lawn-green focus:border-transparent"
+                    value={alignForm.width}
+                    onChange={(e) => setAlignForm({ ...alignForm, width: parseInt(e.target.value) })}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Height (px)</label>
+                  <input
+                    type="number"
+                    min="300"
+                    max="1800"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lawn-green focus:border-transparent"
+                    value={alignForm.height}
+                    onChange={(e) => setAlignForm({ ...alignForm, height: parseInt(e.target.value) })}
+                  />
+                </div>
+              </div>
+
+              <button
+                onClick={handleAlignImages}
+                disabled={isAligning || !alignForm.beforeImage || !alignForm.afterImage}
+                className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isAligning ? 'Getting Links...' : 'Get Download Links & Instructions'}
+              </button>
+
+              {alignedImages && (
+                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h3 className="font-semibold text-blue-900 mb-2">Download Links Opened</h3>
+                  <p className="text-sm text-gray-700 mb-3">
+                    The images have been opened in new tabs. Download them, resize to the same dimensions, then re-upload.
+                  </p>
+                  <div className="space-y-2 text-sm">
+                    <p><strong>Before:</strong> <a href={alignedImages.beforeUrl} target="_blank" rel="noopener noreferrer" className="text-lawn-green hover:underline break-all">{alignedImages.beforeUrl}</a></p>
+                    <p><strong>After:</strong> <a href={alignedImages.afterUrl} target="_blank" rel="noopener noreferrer" className="text-lawn-green hover:underline break-all">{alignedImages.afterUrl}</a></p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-xl font-semibold mb-4">Before/After Image Comparison</h2>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm text-gray-700 mb-2">
+                  To add a before/after comparison slider in your blog post, use this syntax:
+                </p>
+                <code className="block bg-white px-3 py-2 rounded text-sm text-gray-800 font-mono">
+                  [compare: BEFORE_IMAGE_URL | AFTER_IMAGE_URL]
+                </code>
+                <p className="text-xs text-gray-600 mt-2">
+                  Example: [compare: https://your-site.com/before.jpg | https://your-site.com/after.jpg]
+                </p>
+              </div>
             </div>
 
             <div className="bg-white rounded-lg shadow-lg p-6">
