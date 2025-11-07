@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { isAuthenticated, removeAuthToken } from '../utils/auth'
+import { isAuthenticated, removeAuthToken, getAuthToken } from '../utils/auth'
 import type { BlogPost, CreateBlogPost } from '../types/blog'
 
 export default function AdminDashboard() {
@@ -24,9 +24,23 @@ export default function AdminDashboard() {
       return
     }
 
-    // TODO: Fetch posts from API
-    const mockPosts: BlogPost[] = []
-    setPosts(mockPosts)
+    const fetchPosts = async () => {
+      try {
+        const response = await fetch('/api/blog/posts?drafts=true', {
+          headers: {
+            'Authorization': `Bearer ${getAuthToken()}`
+          }
+        })
+        if (response.ok) {
+          const data = await response.json()
+          setPosts(data.posts || [])
+        }
+      } catch (error) {
+        console.error('Failed to fetch posts:', error)
+      }
+    }
+
+    fetchPosts()
   }, [navigate])
 
   const handleLogout = () => {
@@ -38,38 +52,68 @@ export default function AdminDashboard() {
     e.preventDefault()
 
     try {
-      // TODO: Replace with actual API call to Cloudflare Workers
-      const newPost: BlogPost = {
-        id: Date.now().toString(),
-        ...formData,
-        slug: formData.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }
-
-      setPosts([newPost, ...posts])
-      setIsCreating(false)
-      setFormData({
-        title: '',
-        content: '',
-        excerpt: '',
-        imageUrl: '',
-        images: [],
-        category: 'tips',
-        tags: [],
-        published: false,
+      const response = await fetch('/api/blog/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getAuthToken()}`
+        },
+        body: JSON.stringify({
+          title: formData.title,
+          content: formData.content,
+          excerpt: formData.excerpt,
+          featured_image: formData.imageUrl,
+          category: formData.category,
+          tags: formData.tags,
+          published: formData.published
+        })
       })
+
+      if (response.ok) {
+        // Refetch posts
+        const postsResponse = await fetch('/api/blog/posts?drafts=true', {
+          headers: { 'Authorization': `Bearer ${getAuthToken()}` }
+        })
+        if (postsResponse.ok) {
+          const postsData = await postsResponse.json()
+          setPosts(postsData.posts || [])
+        }
+
+        setIsCreating(false)
+        setFormData({
+          title: '',
+          content: '',
+          excerpt: '',
+          imageUrl: '',
+          images: [],
+          category: 'tips',
+          tags: [],
+          published: false,
+        })
+      } else {
+        console.error('Failed to create post')
+      }
     } catch (error) {
       console.error('Failed to create post:', error)
     }
   }
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (slug: string) => {
     if (!confirm('Are you sure you want to delete this post?')) return
 
     try {
-      // TODO: API call to delete
-      setPosts(posts.filter(p => p.id !== id))
+      const response = await fetch(`/api/blog/${slug}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${getAuthToken()}`
+        }
+      })
+
+      if (response.ok) {
+        setPosts(posts.filter(p => p.slug !== slug))
+      } else {
+        console.error('Failed to delete post')
+      }
     } catch (error) {
       console.error('Failed to delete post:', error)
     }
@@ -240,7 +284,7 @@ export default function AdminDashboard() {
                   </div>
                   <div className="flex gap-2">
                     <button
-                      onClick={() => handleDelete(post.id)}
+                      onClick={() => handleDelete(post.slug)}
                       className="text-red-600 hover:text-red-800 px-3 py-1"
                     >
                       Delete

@@ -2,3 +2,12 @@ name = "kyle-lawn"
 compatibility_date = "2024-01-01"
 
 pages_build_output_dir = "./dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "kyle-lawn-db"
+database_id = "d97ebcd3-2cfa-4169-9cdf-aeded2abe2c3"
+
+[[r2_buckets]]
+binding = "IMAGES"
+bucket_name = "kyle-lawn-images"

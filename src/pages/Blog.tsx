@@ -8,41 +8,23 @@ export default function Blog() {
   const [filter, setFilter] = useState<string>('all')
 
   useEffect(() => {
-    // TODO: Replace with actual API call to Cloudflare Workers
-    // For now, using mock data
-    const mockPosts: BlogPost[] = [
-      {
-        id: '1',
-        title: 'Spring Lawn Care Tips: Get Your Lawn Ready',
-        slug: 'spring-lawn-care-tips',
-        content: 'Full content here...',
-        excerpt: 'Learn essential spring lawn care tips to prepare your lawn for the growing season.',
-        imageUrl: 'https://placehold.co/800x400/4CAF50/white?text=Spring+Lawn+Care',
-        category: 'tips',
-        tags: ['spring', 'fertilization', 'maintenance'],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        published: true
-      },
-      {
-        id: '2',
-        title: 'Beautiful Lawn Transformation in Oak Street',
-        slug: 'oak-street-transformation',
-        content: 'Full content here...',
-        excerpt: 'See how we transformed this neglected lawn into a lush, green paradise.',
-        imageUrl: 'https://placehold.co/800x400/2E7D32/white?text=Lawn+Transform',
-        category: 'portfolio',
-        tags: ['transformation', 'before-after'],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        published: true
+    const fetchPosts = async () => {
+      try {
+        const response = await fetch('/api/blog/posts')
+        if (response.ok) {
+          const data = await response.json()
+          setPosts(data.posts || [])
+        } else {
+          console.error('Failed to fetch posts')
+        }
+      } catch (error) {
+        console.error('Error fetching posts:', error)
+      } finally {
+        setLoading(false)
       }
-    ]
+    }
 
-    setTimeout(() => {
-      setPosts(mockPosts)
-      setLoading(false)
-    }, 500)
+    fetchPosts()
   }, [])
 
   const filteredPosts = filter === 'all'
