@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { isAuthenticated, removeAuthToken, getAuthToken } from '../utils/auth'
 import type { BlogPost, CreateBlogPost } from '../types/blog'
+import ImageUpload from '../components/ImageUpload'
 
 export default function AdminDashboard() {
   const navigate = useNavigate()
@@ -189,12 +190,30 @@ export default function AdminDashboard() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Image URL
-                </label>
+                <ImageUpload
+                  onImageUploaded={(url) => setFormData({ ...formData, imageUrl: url })}
+                />
+                {formData.imageUrl && (
+                  <div className="mt-2">
+                    <img
+                      src={formData.imageUrl}
+                      alt="Preview"
+                      className="max-w-xs rounded-lg border border-gray-300"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, imageUrl: '' })}
+                      className="mt-2 text-sm text-red-600 hover:text-red-800"
+                    >
+                      Remove image
+                    </button>
+                  </div>
+                )}
+                <p className="mt-2 text-sm text-gray-500">Or enter a URL manually:</p>
                 <input
                   type="url"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lawn-green focus:border-transparent"
+                  placeholder="https://example.com/image.jpg"
+                  className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lawn-green focus:border-transparent"
                   value={formData.imageUrl}
                   onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
                 />

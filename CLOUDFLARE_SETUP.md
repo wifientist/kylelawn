@@ -57,9 +57,9 @@ npx wrangler r2 bucket create kyle-lawn-images
 Add R2 binding to your `wrangler.toml`:
 
 ```toml
-[[r2_buckets]]
-binding = "IMAGES"
-bucket_name = "kyle-lawn-images"
+   [[r2_buckets]]
+   binding = "IMAGES"
+   bucket_name = "kyle-lawn-images"
 ```
 
 ## Step 6: Configure Cloudflare Pages Project

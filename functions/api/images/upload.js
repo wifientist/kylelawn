@@ -38,8 +38,14 @@ export async function onRequestPost(context) {
       },
     });
 
-    // Generate public URL (you'll need to configure custom domain or R2 public access)
-    const imageUrl = `https://kyle-lawn-images.YOUR_ACCOUNT_ID.r2.cloudflarestorage.com/${filePath}`;
+    // For local dev, serve via special endpoint
+    // For production, configure R2 public URL
+    const isLocal = !env.CF_PAGES;
+    const imageUrl = isLocal
+      ? `/api/images/serve/${fileName}`
+      : `https://pub-${env.R2_PUBLIC_ID}.r2.dev/${filePath}`;
+
+    console.log('[IMAGES] Uploaded:', fileName, '→', imageUrl, '(local:', isLocal, ')');
 
     // If postId provided, save to database
     if (postId) {
