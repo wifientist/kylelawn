@@ -14,9 +14,12 @@ export async function onRequestGet(context) {
 
     const { results } = await env.DB.prepare(query).all();
 
-    // Parse tags from JSON string
+    // Parse tags from JSON string and map database columns to frontend properties
     const posts = results.map(post => ({
       ...post,
+      imageUrl: post.featured_image,
+      createdAt: post.created_at,
+      updatedAt: post.updated_at,
       tags: post.tags ? JSON.parse(post.tags) : [],
       published: post.published === 1
     }));

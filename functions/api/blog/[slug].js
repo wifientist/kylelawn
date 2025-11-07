@@ -18,6 +18,11 @@ export async function onRequestGet(context) {
     }
 
     const post = results[0];
+
+    // Map database columns to frontend properties
+    post.imageUrl = post.featured_image;
+    post.createdAt = post.created_at;
+    post.updatedAt = post.updated_at;
     post.tags = post.tags ? JSON.parse(post.tags) : [];
     post.published = post.published === 1;
 
