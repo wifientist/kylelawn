@@ -2,70 +2,47 @@ export default function Contact() {
   return (
     <section id="contact" className="bg-white">
       <div className="section-container">
-        <div className="max-w-2xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Get a Free Quote</h2>
-            <p className="text-xl text-gray-600">
-              Ready to transform your lawn? Contact us today for a free consultation and quote.
-            </p>
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">Get In Touch</h2>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Ready to transform your lawn? Contact us today for a free consultation and quote.
+          </p>
+        </div>
+
+        <div className="max-w-3xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-6">
+            <a
+              href="tel:+15555551234"
+              className="flex items-center gap-4 p-6 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200 group"
+            >
+              <div className="text-4xl group-hover:scale-110 transition-transform duration-200">
+                📞
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-1">Call Us</h3>
+                <p className="text-lawn-green text-lg font-medium">(912) 555-5555</p>
+              </div>
+            </a>
+
+            <a
+              href="mailto:contact@kylelawn.com"
+              className="flex items-center gap-4 p-6 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200 group"
+            >
+              <div className="text-4xl group-hover:scale-110 transition-transform duration-200">
+                📧
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-1">Email Us</h3>
+                <p className="text-lawn-green text-lg font-medium">kyle@kylejoneslawn.com</p>
+              </div>
+            </a>
           </div>
 
-          <form className="space-y-6">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lawn-green focus:border-transparent outline-none"
-                required
-              />
-            </div>
-
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lawn-green focus:border-transparent outline-none"
-                required
-              />
-            </div>
-
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                Phone
-              </label>
-              <input
-                type="tel"
-                id="phone"
-                name="phone"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lawn-green focus:border-transparent outline-none"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
-                Message
-              </label>
-              <textarea
-                id="message"
-                name="message"
-                rows={4}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lawn-green focus:border-transparent outline-none"
-                required
-              ></textarea>
-            </div>
-
-            <button type="submit" className="w-full btn-primary">
-              Send Message
-            </button>
-          </form>
+          <div className="mt-8 p-6 bg-lawn-green/5 rounded-lg border border-lawn-green/20">
+            <p className="text-center text-gray-700">
+              <span className="font-semibold">Service Area:</span> We proudly serve the greater Effingham area
+            </p>
+          </div>
         </div>
       </div>
     </section>
