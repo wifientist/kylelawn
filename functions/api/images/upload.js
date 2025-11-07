@@ -38,8 +38,10 @@ export async function onRequestPost(context) {
       },
     });
 
-    // Serve all images via our API endpoint (works for both local and production)
-    const imageUrl = `/api/images/serve/${fileName}`;
+    // Generate full URL with domain
+    const url = new URL(request.url);
+    const baseUrl = `${url.protocol}//${url.host}`;
+    const imageUrl = `${baseUrl}/api/images/serve/${fileName}`;
 
     console.log('[IMAGES] Uploaded:', fileName, '→', imageUrl);
 

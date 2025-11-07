@@ -60,15 +60,26 @@ export async function onRequestPost(context) {
     } = postData;
 
     // Generate slug from title
-    const slug = title
+    let slug = title
       .toLowerCase()
       .replace(/[^\w\s-]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
       .trim();
 
+    // Check for duplicate slug and append timestamp if needed
+    const { results: existing } = await env.DB.prepare(
+      'SELECT id FROM blog_posts WHERE slug = ?'
+    ).bind(slug).all();
+
+    if (existing.length > 0) {
+      slug = `${slug}-${Date.now()}`;
+    }
+
     const id = crypto.randomUUID();
     const now = new Date().toISOString();
+
+    console.log('[BLOG] Creating post:', { title, slug, category, published });
 
     await env.DB.prepare(
       `INSERT INTO blog_posts
@@ -87,6 +98,8 @@ export async function onRequestPost(context) {
       now,
       now
     ).run();
+
+    console.log('[BLOG] Post created successfully:', id);
 
     return new Response(JSON.stringify({
       success: true,
