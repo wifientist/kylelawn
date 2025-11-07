@@ -1,31 +1,50 @@
-const portfolioImages = [
-  {
-    id: 1,
-    title: 'Residential Lawn Transformation',
-    description: 'Complete lawn renovation with fresh sod and landscape design',
-    imageUrl: 'https://placehold.co/600x400/4CAF50/white?text=Lawn+1'
-  },
-  {
-    id: 2,
-    title: 'Commercial Property Maintenance',
-    description: 'Weekly maintenance for commercial property in pristine condition',
-    imageUrl: 'https://placehold.co/600x400/2E7D32/white?text=Lawn+2'
-  },
-  {
-    id: 3,
-    title: 'Spring Clean-Up',
-    description: 'Before and after spring cleanup and fertilization',
-    imageUrl: 'https://placehold.co/600x400/4CAF50/white?text=Lawn+3'
-  },
-  {
-    id: 4,
-    title: 'Landscape Design',
-    description: 'Custom landscape design with native plants and mulching',
-    imageUrl: 'https://placehold.co/600x400/2E7D32/white?text=Lawn+4'
-  }
-]
+import { useState, useEffect } from 'react'
+
+interface PortfolioItem {
+  id: string;
+  title: string;
+  subtitle?: string;
+  imageUrl: string;
+}
 
 export default function Portfolio() {
+  const [items, setItems] = useState<PortfolioItem[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchPortfolio = async () => {
+      try {
+        const response = await fetch('/api/portfolio/items')
+        if (response.ok) {
+          const data = await response.json()
+          setItems(data.items || [])
+        }
+      } catch (error) {
+        console.error('Failed to fetch portfolio items:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchPortfolio()
+  }, [])
+
+  if (loading) {
+    return (
+      <section id="portfolio" className="bg-gray-50">
+        <div className="section-container">
+          <div className="text-center">
+            <p className="text-gray-600">Loading portfolio...</p>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  if (items.length === 0) {
+    return null
+  }
+
   return (
     <section id="portfolio" className="bg-gray-50">
       <div className="section-container">
@@ -37,7 +56,7 @@ export default function Portfolio() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-8">
-          {portfolioImages.map((item) => (
+          {items.map((item) => (
             <div
               key={item.id}
               className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-200"
@@ -49,7 +68,9 @@ export default function Portfolio() {
               />
               <div className="p-6">
                 <h3 className="text-xl font-semibold mb-2 text-gray-900">{item.title}</h3>
-                <p className="text-gray-600">{item.description}</p>
+                {item.subtitle && (
+                  <p className="text-gray-600">{item.subtitle}</p>
+                )}
               </div>
             </div>
           ))}

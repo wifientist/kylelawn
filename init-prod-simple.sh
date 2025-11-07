@@ -30,8 +30,12 @@ echo "📋 Step 1/2: Creating main tables (blog_posts, blog_images)..."
 npx wrangler d1 execute kyle-lawn-db --remote --file=./schema.sql
 
 echo ""
-echo "📋 Step 2/2: Adding uploaded_images table..."
+echo "📋 Step 2/3: Adding uploaded_images table..."
 npx wrangler d1 execute kyle-lawn-db --remote --file=./schema-update-images.sql
+
+echo ""
+echo "📋 Step 3/3: Adding portfolio items table..."
+npx wrangler d1 execute kyle-lawn-db --remote --file=./schema-portfolio.sql
 
 echo ""
 echo "✅ Production database initialized successfully!"

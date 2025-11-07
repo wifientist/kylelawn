@@ -50,21 +50,22 @@ export default function BlogPostPage() {
 
   return (
     <article className="bg-gray-50 min-h-screen">
-      <div className="relative h-96 bg-gradient-to-br from-lawn-green to-dark-green">
+      <div className="relative h-96 bg-gray-900">
         {post.imageUrl && (
           <img
             src={post.imageUrl}
             alt={post.title}
-            className="w-full h-full object-cover opacity-30"
+            className="w-full h-full object-cover"
           />
         )}
+        <div className="absolute inset-0 bg-black/40"></div>
         <div className="absolute inset-0 flex items-center">
           <div className="section-container text-white">
-            <Link to="/blog" className="text-green-100 hover:text-white mb-4 inline-block">
+            <Link to="/blog" className="text-white/80 hover:text-white mb-4 inline-block">
               ← Back to Blog
             </Link>
             <h1 className="text-5xl font-bold mb-4">{post.title}</h1>
-            <div className="flex gap-4 items-center text-green-100">
+            <div className="flex gap-4 items-center text-white/90">
               <span>{new Date(post.createdAt).toLocaleDateString()}</span>
               <span>•</span>
               <span className="capitalize">{post.category}</span>

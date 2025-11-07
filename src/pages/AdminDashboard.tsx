@@ -4,13 +4,23 @@ import { isAuthenticated, removeAuthToken, getAuthToken } from '../utils/auth'
 import type { BlogPost, CreateBlogPost } from '../types/blog'
 import ImageUpload from '../components/ImageUpload'
 
+interface PortfolioItem {
+  id: string;
+  title: string;
+  subtitle?: string;
+  imageUrl: string;
+  displayOrder: number;
+}
+
 export default function AdminDashboard() {
   const navigate = useNavigate()
-  const [activeTab, setActiveTab] = useState<'posts' | 'images'>('posts')
+  const [activeTab, setActiveTab] = useState<'posts' | 'images' | 'portfolio'>('posts')
   const [posts, setPosts] = useState<BlogPost[]>([])
   const [isCreating, setIsCreating] = useState(false)
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null)
   const [uploadedImages, setUploadedImages] = useState<Array<{url: string, name: string}>>([])
+  const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([])
+  const [portfolioForm, setPortfolioForm] = useState({ title: '', subtitle: '', imageUrl: '' })
   const [formData, setFormData] = useState<CreateBlogPost>({
     title: '',
     content: '',
@@ -63,8 +73,21 @@ export default function AdminDashboard() {
       }
     }
 
+    const fetchPortfolio = async () => {
+      try {
+        const response = await fetch('/api/portfolio/items')
+        if (response.ok) {
+          const data = await response.json()
+          setPortfolioItems(data.items || [])
+        }
+      } catch (error) {
+        console.error('Failed to fetch portfolio items:', error)
+      }
+    }
+
     fetchPosts()
     fetchImages()
+    fetchPortfolio()
   }, [navigate])
 
   const handleLogout = () => {
@@ -231,6 +254,63 @@ export default function AdminDashboard() {
     }
   }
 
+  const handleCreatePortfolioItem = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    try {
+      const response = await fetch('/api/portfolio/items', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getAuthToken()}`
+        },
+        body: JSON.stringify({
+          title: portfolioForm.title,
+          subtitle: portfolioForm.subtitle,
+          image_url: portfolioForm.imageUrl
+        })
+      })
+
+      if (response.ok) {
+        // Refetch portfolio items
+        const itemsResponse = await fetch('/api/portfolio/items')
+        if (itemsResponse.ok) {
+          const data = await itemsResponse.json()
+          setPortfolioItems(data.items || [])
+        }
+
+        setPortfolioForm({ title: '', subtitle: '', imageUrl: '' })
+      } else {
+        console.error('Failed to create portfolio item')
+      }
+    } catch (error) {
+      console.error('Failed to create portfolio item:', error)
+    }
+  }
+
+  const handleDeletePortfolioItem = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this portfolio item?')) return
+
+    try {
+      const response = await fetch('/api/portfolio/items', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getAuthToken()}`
+        },
+        body: JSON.stringify({ id })
+      })
+
+      if (response.ok) {
+        setPortfolioItems(portfolioItems.filter(item => item.id !== id))
+      } else {
+        console.error('Failed to delete portfolio item')
+      }
+    } catch (error) {
+      console.error('Failed to delete portfolio item:', error)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white shadow">
@@ -270,6 +350,16 @@ export default function AdminDashboard() {
               } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
             >
               Images
+            </button>
+            <button
+              onClick={() => setActiveTab('portfolio')}
+              className={`${
+                activeTab === 'portfolio'
+                  ? 'border-lawn-green text-lawn-green'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+            >
+              Portfolio
             </button>
           </nav>
         </div>
@@ -566,6 +656,100 @@ export default function AdminDashboard() {
               <p className="text-sm text-gray-500 mt-4">
                 Upload images here and copy their URLs to use in blog posts or portfolio section.
               </p>
+            </div>
+          </div>
+        )}
+
+        {/* Portfolio Tab */}
+        {activeTab === 'portfolio' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-xl font-semibold mb-4">Add Portfolio Item</h2>
+              <form onSubmit={handleCreatePortfolioItem} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Title
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lawn-green focus:border-transparent"
+                    value={portfolioForm.title}
+                    onChange={(e) => setPortfolioForm({ ...portfolioForm, title: e.target.value })}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Subtitle
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lawn-green focus:border-transparent"
+                    value={portfolioForm.subtitle}
+                    onChange={(e) => setPortfolioForm({ ...portfolioForm, subtitle: e.target.value })}
+                  />
+                </div>
+
+                <div>
+                  <ImageUpload
+                    onImageUploaded={(url) => setPortfolioForm({ ...portfolioForm, imageUrl: url })}
+                  />
+                  {portfolioForm.imageUrl && (
+                    <div className="mt-2">
+                      <img
+                        src={portfolioForm.imageUrl}
+                        alt="Preview"
+                        className="max-w-xs rounded-lg border border-gray-300"
+                      />
+                    </div>
+                  )}
+                  <p className="mt-2 text-sm text-gray-500">Or enter a URL manually:</p>
+                  <input
+                    type="url"
+                    required
+                    placeholder="https://example.com/image.jpg"
+                    className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lawn-green focus:border-transparent"
+                    value={portfolioForm.imageUrl}
+                    onChange={(e) => setPortfolioForm({ ...portfolioForm, imageUrl: e.target.value })}
+                  />
+                </div>
+
+                <button type="submit" className="btn-primary">
+                  Add Portfolio Item
+                </button>
+              </form>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-xl font-semibold mb-4">Portfolio Items</h2>
+              {portfolioItems.length === 0 ? (
+                <p className="text-gray-500">No portfolio items yet. Add your first item above!</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {portfolioItems.map((item) => (
+                    <div key={item.id} className="border rounded-lg overflow-hidden">
+                      <img
+                        src={item.imageUrl}
+                        alt={item.title}
+                        className="w-full h-48 object-cover"
+                      />
+                      <div className="p-4">
+                        <h3 className="font-semibold text-gray-900">{item.title}</h3>
+                        {item.subtitle && (
+                          <p className="text-sm text-gray-600 mt-1">{item.subtitle}</p>
+                        )}
+                        <button
+                          onClick={() => handleDeletePortfolioItem(item.id)}
+                          className="mt-3 text-sm text-red-600 hover:text-red-800 font-semibold"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
