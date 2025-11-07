@@ -7,7 +7,7 @@ export default function Layout() {
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <Link to="/" className="text-2xl font-bold text-dark-green">
-              Kyle's Lawn Care
+              Kyle Jones Lawn Maintenance
             </Link>
             <div className="flex gap-6 items-center">
               <Link to="/" className="text-gray-700 hover:text-lawn-green transition-colors">
@@ -31,10 +31,10 @@ export default function Layout() {
       <footer className="bg-gray-900 text-white py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <p className="text-lg font-semibold mb-2">Kyle's Lawn Care</p>
+            <p className="text-lg font-semibold mb-2">Kyle Jones Lawn Maintenance</p>
             <p className="text-gray-400">Professional lawn care services you can trust</p>
             <p className="text-gray-500 text-sm mt-4">
-              &copy; {new Date().getFullYear()} Kyle's Lawn Care. All rights reserved.
+              &copy; {new Date().getFullYear()} Kyle Jones Lawn Maintenance. All rights reserved.
             </p>
           </div>
         </div>

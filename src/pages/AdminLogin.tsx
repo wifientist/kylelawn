@@ -14,29 +14,32 @@ export default function AdminLogin() {
     setLoading(true)
 
     try {
-      // TODO: Replace with actual API call to Cloudflare Workers
-      // For now, simple password check (will be replaced with proper auth)
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ password }),
-      }).catch(() => {
-        // Fallback for development - check against env variable
-        if (password === 'admin123') { // This will be replaced with proper auth
-          return { ok: true, json: async () => ({ token: 'mock-token' }) }
-        }
-        throw new Error('Invalid credentials')
-      })
+      // Try API endpoint first
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ password }),
+        })
 
-      if (response.ok) {
-        const data = await response.json()
-        setAuthToken(data.token)
-        navigate('/admin/dashboard')
-      } else {
-        setError('Invalid password')
+        if (response.ok) {
+          const data = await response.json()
+          setAuthToken(data.token)
+          navigate('/admin/dashboard')
+          return
+        } else {
+          setError('Invalid password')
+          return
+        }
+      } catch (apiError) {
+        // API not available, fallback to local dev mode
+        console.log('API not available, using dev mode authentication')
       }
+
+      // If API is not available, show helpful error
+      setError('Authentication service unavailable. Please run "npm run pages:dev" to enable local authentication.')
     } catch (err) {
       setError('Authentication failed. Please try again.')
     } finally {

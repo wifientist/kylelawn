@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:functions": "wrangler pages dev --port 8788 --ip 0.0.0.0 --proxy 5177",
+    "dev:full": "concurrently \"npm run dev\" \"npm run dev:functions\"",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "pages:dev": "wrangler pages dev -- npm run dev",
+    "pages:dev": "npm run build && wrangler pages dev dist --live-reload",
     "pages:deploy": "npm run build && wrangler pages deploy ./dist"
   },
   "keywords": [
@@ -30,6 +32,7 @@
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
     "autoprefixer": "^10.4.21",
+    "concurrently": "^9.2.1",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.17",
     "typescript": "^5.9.3",
