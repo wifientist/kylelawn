@@ -1,9 +1,6 @@
 // Cloudflare Pages Function for authentication
-interface Env {
-  ADMIN_PASSWORD: string;
-}
 
-export async function onRequestPost(context: { request: Request; env: Env }) {
+export async function onRequestPost(context) {
   const { request, env } = context;
 
   console.log('[AUTH] Login attempt received');
@@ -11,7 +8,7 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
   console.log('[AUTH] ADMIN_PASSWORD length:', env.ADMIN_PASSWORD?.length || 0);
 
   try {
-    const { password } = await request.json() as { password: string };
+    const { password } = await request.json();
 
     console.log('[AUTH] Received password length:', password?.length || 0);
 
