@@ -1,0 +1,38 @@
+{
+  "name": "kylelawn",
+  "version": "1.0.0",
+  "description": "Kyle's Lawn Care - Professional lawn care services website",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "pages:dev": "wrangler pages dev -- npm run dev",
+    "pages:deploy": "npm run build && wrangler pages deploy ./dist"
+  },
+  "keywords": [
+    "lawn-care",
+    "react",
+    "vite",
+    "cloudflare-pages"
+  ],
+  "author": "Kyle",
+  "license": "ISC",
+  "dependencies": {
+    "@vitejs/plugin-react": "^5.1.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-router-dom": "^7.9.5",
+    "vite": "^7.2.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.17",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.17",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.46.0"
+  }
+}
