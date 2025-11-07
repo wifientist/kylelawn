@@ -9,6 +9,7 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'posts' | 'images'>('posts')
   const [posts, setPosts] = useState<BlogPost[]>([])
   const [isCreating, setIsCreating] = useState(false)
+  const [editingPost, setEditingPost] = useState<BlogPost | null>(null)
   const [uploadedImages, setUploadedImages] = useState<Array<{url: string, name: string}>>([])
   const [formData, setFormData] = useState<CreateBlogPost>({
     title: '',
@@ -121,6 +122,73 @@ export default function AdminDashboard() {
     }
   }
 
+  const handleEdit = (post: BlogPost) => {
+    setEditingPost(post)
+    setFormData({
+      title: post.title,
+      content: post.content,
+      excerpt: post.excerpt,
+      imageUrl: post.imageUrl || '',
+      images: post.images || [],
+      category: post.category,
+      tags: post.tags,
+      published: post.published,
+    })
+    setIsCreating(true)
+  }
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingPost) return
+
+    try {
+      const response = await fetch(`/api/blog/${editingPost.slug}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getAuthToken()}`
+        },
+        body: JSON.stringify({
+          title: formData.title,
+          content: formData.content,
+          excerpt: formData.excerpt,
+          featured_image: formData.imageUrl,
+          category: formData.category,
+          tags: formData.tags,
+          published: formData.published
+        })
+      })
+
+      if (response.ok) {
+        // Refetch posts
+        const postsResponse = await fetch('/api/blog/posts?drafts=true', {
+          headers: { 'Authorization': `Bearer ${getAuthToken()}` }
+        })
+        if (postsResponse.ok) {
+          const postsData = await postsResponse.json()
+          setPosts(postsData.posts || [])
+        }
+
+        setIsCreating(false)
+        setEditingPost(null)
+        setFormData({
+          title: '',
+          content: '',
+          excerpt: '',
+          imageUrl: '',
+          images: [],
+          category: 'tips',
+          tags: [],
+          published: false,
+        })
+      } else {
+        console.error('Failed to update post')
+      }
+    } catch (error) {
+      console.error('Failed to update post:', error)
+    }
+  }
+
   const handleDelete = async (slug: string) => {
     if (!confirm('Are you sure you want to delete this post?')) return
 
@@ -139,6 +207,27 @@ export default function AdminDashboard() {
       }
     } catch (error) {
       console.error('Failed to delete post:', error)
+    }
+  }
+
+  const handleDeleteImage = async (filename: string) => {
+    if (!confirm('Are you sure you want to delete this image?')) return
+
+    try {
+      const response = await fetch(`/api/images/delete/${filename}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${getAuthToken()}`
+        }
+      })
+
+      if (response.ok) {
+        setUploadedImages(uploadedImages.filter(img => img.name !== filename))
+      } else {
+        console.error('Failed to delete image')
+      }
+    } catch (error) {
+      console.error('Failed to delete image:', error)
     }
   }
 
@@ -190,7 +279,24 @@ export default function AdminDashboard() {
           <>
             <div className="mb-6">
               <button
-                onClick={() => setIsCreating(!isCreating)}
+                onClick={() => {
+                  if (isCreating) {
+                    setIsCreating(false)
+                    setEditingPost(null)
+                    setFormData({
+                      title: '',
+                      content: '',
+                      excerpt: '',
+                      imageUrl: '',
+                      images: [],
+                      category: 'tips',
+                      tags: [],
+                      published: false,
+                    })
+                  } else {
+                    setIsCreating(true)
+                  }
+                }}
                 className="btn-primary"
               >
                 {isCreating ? 'Cancel' : 'Create New Post'}
@@ -199,8 +305,10 @@ export default function AdminDashboard() {
 
         {isCreating && (
           <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-4">Create New Post</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <h2 className="text-xl font-semibold mb-4">
+              {editingPost ? 'Edit Post' : 'Create New Post'}
+            </h2>
+            <form onSubmit={editingPost ? handleUpdate : handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Title
@@ -316,11 +424,24 @@ export default function AdminDashboard() {
 
               <div className="flex gap-4">
                 <button type="submit" className="btn-primary">
-                  Create Post
+                  {editingPost ? 'Update Post' : 'Create Post'}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setIsCreating(false)}
+                  onClick={() => {
+                    setIsCreating(false)
+                    setEditingPost(null)
+                    setFormData({
+                      title: '',
+                      content: '',
+                      excerpt: '',
+                      imageUrl: '',
+                      images: [],
+                      category: 'tips',
+                      tags: [],
+                      published: false,
+                    })
+                  }}
                   className="btn-secondary"
                 >
                   Cancel
@@ -354,8 +475,14 @@ export default function AdminDashboard() {
                   </div>
                   <div className="flex gap-2">
                     <button
+                      onClick={() => handleEdit(post)}
+                      className="text-lawn-green hover:text-dark-green px-3 py-1 font-semibold"
+                    >
+                      Edit
+                    </button>
+                    <button
                       onClick={() => handleDelete(post.slug)}
-                      className="text-red-600 hover:text-red-800 px-3 py-1"
+                      className="text-red-600 hover:text-red-800 px-3 py-1 font-semibold"
                     >
                       Delete
                     </button>
@@ -410,19 +537,27 @@ export default function AdminDashboard() {
                           className="w-full text-xs px-2 py-1 mb-2 border border-gray-300 rounded text-gray-600 cursor-pointer hover:border-lawn-green"
                           title="Click to copy URL"
                         />
-                        <button
-                          onClick={async () => {
-                            try {
-                              await navigator.clipboard.writeText(image.url)
-                              alert('✓ URL copied to clipboard!')
-                            } catch (err) {
-                              alert('URL: ' + image.url)
-                            }
-                          }}
-                          className="text-xs text-lawn-green hover:text-dark-green font-semibold block"
-                        >
-                          Copy URL
-                        </button>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={async () => {
+                              try {
+                                await navigator.clipboard.writeText(image.url)
+                                alert('✓ URL copied to clipboard!')
+                              } catch (err) {
+                                alert('URL: ' + image.url)
+                              }
+                            }}
+                            className="text-xs text-lawn-green hover:text-dark-green font-semibold flex-1"
+                          >
+                            Copy URL
+                          </button>
+                          <button
+                            onClick={() => handleDeleteImage(image.name)}
+                            className="text-xs text-red-600 hover:text-red-800 font-semibold"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
