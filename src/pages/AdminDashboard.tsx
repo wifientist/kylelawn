@@ -6,8 +6,10 @@ import ImageUpload from '../components/ImageUpload'
 
 export default function AdminDashboard() {
   const navigate = useNavigate()
+  const [activeTab, setActiveTab] = useState<'posts' | 'images'>('posts')
   const [posts, setPosts] = useState<BlogPost[]>([])
   const [isCreating, setIsCreating] = useState(false)
+  const [uploadedImages, setUploadedImages] = useState<Array<{url: string, name: string}>>([])
   const [formData, setFormData] = useState<CreateBlogPost>({
     title: '',
     content: '',
@@ -137,14 +139,43 @@ export default function AdminDashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6">
-          <button
-            onClick={() => setIsCreating(!isCreating)}
-            className="btn-primary"
-          >
-            {isCreating ? 'Cancel' : 'Create New Post'}
-          </button>
+        {/* Tabs */}
+        <div className="mb-6 border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setActiveTab('posts')}
+              className={`${
+                activeTab === 'posts'
+                  ? 'border-lawn-green text-lawn-green'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+            >
+              Blog Posts
+            </button>
+            <button
+              onClick={() => setActiveTab('images')}
+              className={`${
+                activeTab === 'images'
+                  ? 'border-lawn-green text-lawn-green'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+            >
+              Images
+            </button>
+          </nav>
         </div>
+
+        {/* Posts Tab */}
+        {activeTab === 'posts' && (
+          <>
+            <div className="mb-6">
+              <button
+                onClick={() => setIsCreating(!isCreating)}
+                className="btn-primary"
+              >
+                {isCreating ? 'Cancel' : 'Create New Post'}
+              </button>
+            </div>
 
         {isCreating && (
           <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
@@ -314,6 +345,75 @@ export default function AdminDashboard() {
             )}
           </div>
         </div>
+          </>
+        )}
+
+        {/* Images Tab */}
+        {activeTab === 'images' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-xl font-semibold mb-4">Upload Image</h2>
+              <ImageUpload
+                onImageUploaded={(url) => {
+                  setUploadedImages(prev => [...prev, { url, name: url.split('/').pop() || 'image' }])
+                }}
+              />
+            </div>
+
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-xl font-semibold mb-4">Uploaded Images</h2>
+              {uploadedImages.length === 0 ? (
+                <p className="text-gray-500">No images uploaded yet. Upload your first image above!</p>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {uploadedImages.map((image, index) => (
+                    <div key={index} className="border rounded-lg overflow-hidden">
+                      <img
+                        src={image.url}
+                        alt={image.name}
+                        className="w-full h-48 object-cover"
+                      />
+                      <div className="p-2 bg-gray-50">
+                        <p className="text-xs text-gray-600 truncate mb-2">{image.name}</p>
+                        <input
+                          type="text"
+                          value={image.url}
+                          readOnly
+                          onClick={(e) => {
+                            e.currentTarget.select()
+                            navigator.clipboard.writeText(image.url).then(() => {
+                              alert('✓ URL copied!')
+                            }).catch(() => {
+                              alert('✓ URL selected - press Ctrl+C to copy')
+                            })
+                          }}
+                          className="w-full text-xs px-2 py-1 mb-2 border border-gray-300 rounded text-gray-600 cursor-pointer hover:border-lawn-green"
+                          title="Click to copy URL"
+                        />
+                        <button
+                          onClick={async () => {
+                            try {
+                              await navigator.clipboard.writeText(image.url)
+                              alert('✓ URL copied to clipboard!')
+                            } catch (err) {
+                              alert('URL: ' + image.url)
+                            }
+                          }}
+                          className="text-xs text-lawn-green hover:text-dark-green font-semibold block"
+                        >
+                          Copy URL
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <p className="text-sm text-gray-500 mt-4">
+                Upload images here and copy their URLs to use in blog posts or portfolio section.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
