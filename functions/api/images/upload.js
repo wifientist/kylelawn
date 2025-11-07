@@ -38,14 +38,10 @@ export async function onRequestPost(context) {
       },
     });
 
-    // For local dev, serve via special endpoint
-    // For production, configure R2 public URL
-    const isLocal = !env.CF_PAGES;
-    const imageUrl = isLocal
-      ? `/api/images/serve/${fileName}`
-      : `https://pub-${env.R2_PUBLIC_ID}.r2.dev/${filePath}`;
+    // Serve all images via our API endpoint (works for both local and production)
+    const imageUrl = `/api/images/serve/${fileName}`;
 
-    console.log('[IMAGES] Uploaded:', fileName, '→', imageUrl, '(local:', isLocal, ')');
+    console.log('[IMAGES] Uploaded:', fileName, '→', imageUrl);
 
     // Save to uploaded_images table for tracking
     const imageId = crypto.randomUUID();
