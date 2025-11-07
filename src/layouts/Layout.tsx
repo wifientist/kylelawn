@@ -1,6 +1,37 @@
-import { Outlet, Link } from 'react-router-dom'
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { isAuthenticated } from '../utils/auth'
 
 export default function Layout() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    // Check authentication status on mount and after storage changes
+    const checkAuth = () => setIsLoggedIn(isAuthenticated())
+    checkAuth()
+
+    // Listen for storage events (in case auth changes in another tab)
+    window.addEventListener('storage', checkAuth)
+    return () => window.removeEventListener('storage', checkAuth)
+  }, [])
+
+  const handleGetQuote = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault()
+
+    if (location.pathname === '/') {
+      // Already on home page, just scroll to contact
+      document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })
+    } else {
+      // Navigate to home page, then scroll to contact
+      navigate('/')
+      setTimeout(() => {
+        document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })
+      }, 100)
+    }
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       <header className="bg-white shadow-sm sticky top-0 z-50">
@@ -16,7 +47,12 @@ export default function Layout() {
               <Link to="/blog" className="text-gray-700 hover:text-lawn-green transition-colors">
                 Blog
               </Link>
-              <a href="#contact" className="btn-primary">
+              {isLoggedIn && (
+                <Link to="/admin" className="text-gray-700 hover:text-lawn-green transition-colors">
+                  Admin
+                </Link>
+              )}
+              <a href="#contact" onClick={handleGetQuote} className="btn-primary">
                 Get Quote
               </a>
             </div>

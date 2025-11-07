@@ -1,12 +1,19 @@
-import { useState, FormEvent } from 'react'
+import { useState, FormEvent, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { setAuthToken } from '../utils/auth'
+import { setAuthToken, isAuthenticated } from '../utils/auth'
 
 export default function AdminLogin() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated()) {
+      navigate('/admin')
+    }
+  }, [navigate])
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -27,7 +34,7 @@ export default function AdminLogin() {
         if (response.ok) {
           const data = await response.json()
           setAuthToken(data.token)
-          navigate('/admin/dashboard')
+          navigate('/admin')
           return
         } else {
           setError('Invalid password')
